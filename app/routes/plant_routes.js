@@ -90,19 +90,20 @@ router.delete('/plants/:id', requireToken, (req, res, next) => {
 })
 
 // Routes for favorites
-router.post('/addFavorite/:userId/:plantId', async (req, res, next) => {
+router.post('/add-to-favorites/:userId/:plantId', async (req, res, next) => {
     try {
       const { userId, plantId } = req.params;
-  
+	  newFav = {id: platId, }
       const user = await User.findById(userId);
-      const plant = await Plant.findById(plantId);
+    //   const plant = await Plant.findById(plantId);
+		user.favorites.push1(object)
   
-      if (!user || !plant) {
-        return res.status(404).json({ message: 'User or plant not found' });
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
       }
   
       // Check if the plant is already in favorites to avoid duplicates
-      if (!plant.favoritedBy.includes(user._id)) {
+      if user.favorites.includes(object)) {
         plant.favoritedBy.push(user);
         await plant.save();
   
