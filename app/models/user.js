@@ -12,7 +12,9 @@ const userSchema = new mongoose.Schema(
 			required: true,
 		},
 		token: String,
-	},
+		favorites: [ Array ] 
+		},
+
 	{
 		timestamps: true,
 		toObject: {

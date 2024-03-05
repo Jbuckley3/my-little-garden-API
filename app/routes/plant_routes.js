@@ -1,30 +1,13 @@
-// Express docs: http://expressjs.com/en/api.html
 const express = require('express')
-// Passport docs: http://www.passportjs.org/docs/
 const passport = require('passport')
-
-// pull in Mongoose model for plants
+const User = require('../models/user')
 const Plant = require('../models/plant')
-
-// this is a collection of methods that help us detect situations when we need
-// to throw a custom error
 const customErrors = require('../../lib/custom_errors')
-
-// we'll use this function to send 404 when non-existant document is requested
 const handle404 = customErrors.handle404
-// we'll use this function to send 401 when a user tries to modify a resource
-// that's owned by someone else
 const requireOwnership = customErrors.requireOwnership
-
-// this is middleware that will remove blank fields from `req.body`, e.g.
-// { example: { title: '', text: 'foo' } } -> { example: { text: 'foo' } }
 const removeBlanks = require('../../lib/remove_blank_fields')
-// passing this as a second argument to `router.<verb>` will make it
-// so that a token MUST be passed for that route to be available
-// it will also set `req.user`
 const requireToken = passport.authenticate('bearer', { session: false })
 
-// instantiate a router (mini app that only handles routes)
 const router = express.Router()
 
 // INDEX
@@ -32,9 +15,6 @@ const router = express.Router()
 router.get('/plants', (req, res, next) => {
 	Plant.find()
 		.then((plants) => {
-			// `plants` will be an array of Mongoose documents
-			// we want to convert each one to a POJO, so we use `.map` to
-			// apply `.toObject` to each one
 			return plants.map((plant) => plant.toObject())
 		})
 		// respond with status 200 and JSON of the plants
@@ -66,9 +46,6 @@ router.post('/plants', requireToken, (req, res, next) => {
 		.then((plant) => {
 			res.status(201).json({ plant: plant.toObject() })
 		})
-		// if an error occurs, pass it off to our error handler
-		// the error handler needs the error message and the `res` object so that it
-		// can send an error message back to the client
 		.catch(next)
 })
 
@@ -111,5 +88,49 @@ router.delete('/plants/:id', requireToken, (req, res, next) => {
 		// if an error occurs, pass it to the handler
 		.catch(next)
 })
+
+// Routes for favorites
+router.post('/addFavorite/:userId/:plantId', async (req, res, next) => {
+    try {
+      const { userId, plantId } = req.params;
+  
+      const user = await User.findById(userId);
+      const plant = await Plant.findById(plantId);
+  
+      if (!user || !plant) {
+        return res.status(404).json({ message: 'User or plant not found' });
+      }
+  
+      // Check if the plant is already in favorites to avoid duplicates
+      if (!plant.favoritedBy.includes(user._id)) {
+        plant.favoritedBy.push(user);
+        await plant.save();
+  
+        res.status(200).json({ message: 'Plant added to favorites' });
+      } else {
+        res.status(400).json({ message: 'Plant is already in favorites' });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+  
+  router.get('/favorites/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+  
+      const user = await User.findById(userId).populate('favoritedPlants'); 
+  
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      res.status(200).json(user.favoritedPlants); 
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
 
 module.exports = router
