@@ -90,43 +90,44 @@ router.delete('/plants/:id', requireToken, (req, res, next) => {
 })
 
 // Routes for favorites
-router.post('/addFavorite/:userId/:plantId', async (req, res, next) => {
+router.post('/add-to-favorites/:userId/:common_name/:watering/:sunlight/:cycle/:image_url/:plantId', async (req, res, next) => {
     try {
-      const { userId, plantId } = req.params;
-	  const newFav = { id: plantId, }
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      // Check if the plant is already in favorites to avoid duplicates
-      if (!user.favorites.includes(newFav)) {
-        user.favorites.push(newFav);
-        await user.save();
-  
-        res.status(200).json({ message: 'Plant added to favorites' });
-      } else {
-        res.status(400).json({ message: 'Plant is already in favorites' });
-      }
+        console.log(req.params.image_url)
+		const { userId, common_name, watering, sunlight, cycle, image_url, plantId } = req.params;
+		const newFav = { common_name: common_name, watering: watering, sunlight: sunlight, cycle: cycle, image_url: image_url, plantId: plantId }
+		const user = await User.findById(userId);
+		if (!user) {
+        	return res.status(404).json({ message: 'User not found' });
+		}
+		// Check if the plant is already in favorites to avoid duplicates
+		if (!user.favorites.includes(newFav)) {
+			user.favorites.push(newFav);
+			await user.save();
+
+			res.status(200).json({ message: 'Plant added to favorites' });
+		} else {
+			res.status(400).json({ message: 'Plant is already in favorites' });
+		}
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Internal server error' });
+		console.error(error);
+		res.status(500).json({ message: 'Internal server error' });
     }
-  });
-  
+});
+
 router.get('/favorites/:userId', async (req, res) => {
     try {
-      const { userId } = req.params;
-	  
-      const user = await User.findById(userId).populate('favorites'); 
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-  
-      res.status(200).json(user.favorites); 
+		const { userId } = req.params;
+		
+		const user = await User.findById(userId).populate('favorites'); 
+		if (!user) {
+			return res.status(404).json({ message: 'User not found' });
+		}
+
+		res.status(200).json(user.favorites); 
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Internal server error' });
+		console.error(error);
+		res.status(500).json({ message: 'Internal server error' });
     }
-  });
+});
 
 module.exports = router
