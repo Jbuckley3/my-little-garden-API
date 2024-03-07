@@ -90,10 +90,11 @@ router.delete('/plants/:id', requireToken, (req, res, next) => {
 })
 
 // Routes for favorites
-router.post('/add-to-favorites/:userId/:plantId', async (req, res, next) => {
+router.post('/add-to-favorites/:userId/:common_name/:watering/:sunlight/:cycle/:image_url', async (req, res, next) => {
     try {
-      const { userId, plantId } = req.params;
-	  const newFav = { id: plantId, }
+        console.log(req.params.image_url)
+      const { userId, common_name, watering, sunlight, cycle, image_url, plantId } = req.params;
+	  const newFav = { common_name: common_name, watering: watering, sunlight: sunlight, cycle: cycle, image_url: image_url }
       const user = await User.findById(userId);
     //   const plant = await Plant.findById(plantId);
         
