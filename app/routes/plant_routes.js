@@ -95,12 +95,9 @@ router.post('/addFavorite/:userId/:plantId', async (req, res, next) => {
       const { userId, plantId } = req.params;
 	  const newFav = { id: plantId, }
       const user = await User.findById(userId);
-    //   const plant = await Plant.findById(plantId);
-        
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
-  
       // Check if the plant is already in favorites to avoid duplicates
       if (!user.favorites.includes(newFav)) {
         user.favorites.push(newFav);
@@ -119,8 +116,7 @@ router.post('/addFavorite/:userId/:plantId', async (req, res, next) => {
 router.get('/favorites/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
-      console.log(userId)
-
+	  
       const user = await User.findById(userId).populate('favorites'); 
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
